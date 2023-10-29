@@ -9,10 +9,16 @@ typedef enum {
   FLOAT = 2,
   CHAR = 3,
   STRING = 4,
-  END = 5,
+  PLUS = 5,
+  MINUS = 6,
+  STAR = 7,
+  SLASH = 8,
+  PAR_OPEN = 9,
+  PAR_CLOSE = 10,
+  END = 11,
 } Symbol;
 
-static const char *symbol_name[6] = {"whitespace", "int", "float", "char", "string", "end"};
+static const char *symbol_name[12] = {"whitespace", "int", "float", "char", "string", "plus", "minus", "star", "slash", "par_open", "par_close", "end"};
 
 typedef struct {
   unsigned int start;

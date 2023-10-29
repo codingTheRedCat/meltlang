@@ -63,6 +63,37 @@ static inline void handle_char_escape(Lexer *lexer) {
 }
 
 bool scan(Lexer *lexer, bool valid_symbols[]) {
+  if (valid_symbols[PLUS] && lexer->lookahead == '+') {
+    lexer->result_symbol = PLUS;
+    adv(lexer);
+    return true;
+  }
+  if (valid_symbols[MINUS] && lexer->lookahead == '-') {
+    lexer->result_symbol = MINUS;
+    adv(lexer);
+    return true;
+  }
+  if (valid_symbols[STAR] && lexer->lookahead == '*') {
+    lexer->result_symbol = STAR;
+    adv(lexer);
+    return true;
+  }
+  if (valid_symbols[SLASH] && lexer->lookahead == '/') {
+    lexer->result_symbol = SLASH;
+    adv(lexer);
+    return true;
+  }
+  if (valid_symbols[PAR_OPEN] && lexer->lookahead == '(') {
+    lexer->result_symbol = PAR_OPEN;
+    adv(lexer);
+    return true;
+  }
+  if (valid_symbols[PAR_CLOSE] && lexer->lookahead == ')') {
+    lexer->result_symbol = PAR_CLOSE;
+    adv(lexer);
+    return true;
+  }
+
   if (valid_symbols[STRING] && lexer->lookahead == '"') {
     lexer->result_symbol = STRING;
     adv(lexer);
