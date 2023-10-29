@@ -1,0 +1,24 @@
+#ifndef PARSER_H
+#define PARSER_H 
+#include <stdbool.h>
+typedef struct {
+    unsigned int start;
+    unsigned int end;
+    char *value;
+    unsigned int value_length;
+} ValueToken;
+
+typedef struct {
+    unsigned int start;
+    unsigned int end;
+} Token;
+
+typedef struct {
+  unsigned int lookahead;
+  bool (*eof)(void *);
+  void (*advance)(void *);
+  unsigned int result_symbol;
+} Lexer;
+
+bool scan(Lexer *lexer, bool valid_symbols[]);
+#endif
