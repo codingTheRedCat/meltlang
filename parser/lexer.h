@@ -1,5 +1,53 @@
-#include "parser.h"
+#include "symbols.h"
+#include "definitions.h"
+#include <stdio.h>
+// ---
+#ifndef MELT_LEXER_H
+#define MELT_LEXER_H
 #include <stdbool.h>
+
+typedef struct {
+  TextPos pos;
+  unsigned int lookahead;
+  unsigned int lookahead_size;
+  bool eof;
+  unsigned int result_symbol;
+  bool seen_cr;
+  void *source;
+  Reader read;
+} Lexer;
+
+static inline void adv(Lexer *lexer) {
+  if (lexer->lookahead == '\r') {
+    lexer->pos.column = 0;
+    lexer->pos.line++;
+    lexer->seen_cr = true;
+  } else if (lexer->lookahead == '\n') {
+    lexer->pos.column = 0;
+    if (lexer->seen_cr) {
+      lexer->seen_cr = false;
+    } else {
+      lexer->pos.line++;
+    }
+  } else {
+    lexer->seen_cr = false;
+    lexer->pos.column++;
+  }
+  lexer->pos.boffset += lexer->lookahead_size;
+  lexer->pos.coffset++;
+  lexer->read(lexer->source, &lexer->lookahead, &lexer->eof, &lexer->lookahead_size);
+}
+
+static inline Lexer init_lexer(void *source, Reader read) {
+  Lexer lex;
+  lex.source = source;
+  lex.read = read;
+  lex.lookahead = 0;
+  adv(&lex);
+  TextPos pos = {0, 0, 1, 0};
+  lex.pos = pos;
+  return lex;
+}
 
 static inline bool is_hexdec(unsigned int c) {
   return (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') ||
@@ -62,7 +110,7 @@ static inline void handle_char_escape(Lexer *lexer) {
   adv(lexer);
 }
 
-bool scan(Lexer *lexer, bool valid_symbols[]) {
+static inline bool lex(Lexer *lexer, const bool valid_symbols[]) {
   if (valid_symbols[PLUS] && lexer->lookahead == '+') {
     lexer->result_symbol = PLUS;
     adv(lexer);
@@ -195,14 +243,12 @@ bool scan(Lexer *lexer, bool valid_symbols[]) {
     lexer->result_symbol = INT;
     return valid_symbols[INT];
   }
-  if (valid_symbols[WHITESPACE] &&
-      (lexer->lookahead == ' ' || lexer->lookahead == '\t' ||
-       lexer->lookahead == '\r' || lexer->lookahead == '\n')) {
-    while (lexer->lookahead == ' ' || lexer->lookahead == '\t' ||
-           lexer->lookahead == '\r' || lexer->lookahead == '\n')
-      adv(lexer);
-    lexer->result_symbol = WHITESPACE;
-    return true;
+  if (valid_symbols[WHITESPACE] && (lexer->lookahead == '\t' || lexer->lookahead == ' ')) {
+      lexer->result_symbol = WHITESPACE;
+      do {
+          adv(lexer);
+      } while (lexer->lookahead == '\t' || lexer->lookahead == ' ');
+      return true;
   }
   if (valid_symbols[END] && lexer->eof) {
     lexer->result_symbol = END;
@@ -210,3 +256,5 @@ bool scan(Lexer *lexer, bool valid_symbols[]) {
   }
   return false;
 }
+
+#endif

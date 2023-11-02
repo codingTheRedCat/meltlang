@@ -1,20 +1,36 @@
 #include "parser.h"
-#include <locale.h>
+#include "symbols.h"
+#include "utf8.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <wchar.h>
+#include <wctype.h>
+
+int read_byte_stdin(void *ign) { return getchar(); }
+
+void read(void *source, unsigned int *ch, bool *eof, unsigned int *size) {
+  readch_utf8(source, ch, eof, size, read_byte_stdin);
+}
+
+void listen(void *payload, unsigned int tag, TextPos pos) {
+  int *indent = (int *)payload;
+  if (tag != BEGSYM) {
+    *indent -= 1;
+    for (int i = 0; i < *indent; i++) {
+      printf("  ");
+    }
+    printf("[%d:%d] %s)\n", pos.line, pos.column, symbol_name[tag]);
+    return;
+  }
+  for (int i = 0; i < *indent; i++) {
+    printf("  ");
+  }
+  printf("([%d:%d]\n", pos.line, pos.column);
+  *indent += 1;
+}
 
 int main() {
-  setlocale(LC_ALL, "C.UTF-8");
-  Lexer lex = init_lexer();
-  bool valid_symbols[] = { true, true, true, true, true, true, true, true, true, true, true, true };
-  unsigned int from_line = lex.line;
-  unsigned int from_col = lex.column;
-  while (scan(&lex, valid_symbols)) {
-      printf("token: %s [%d:%d;%d:%d]\n", symbol_name[lex.result_symbol], from_line, from_col, lex.line, lex.column);
-      from_line = lex.line;
-      from_col = lex.column;
-      if (lex.result_symbol == END) break;
-  }
-  return 0;
+  Reader r = read;
+  int indent = 0;
+  parse(NULL, &indent, r, listen);
 }

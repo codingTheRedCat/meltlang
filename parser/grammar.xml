@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar>
+    <token name="int"></token>
+    <token name="float"></token>
+    <token name="char"></token>
+    <token name="string"></token>
+    <token name="whitespace"></token>
+    <token name="plus"></token>
+    <token name="minus"></token>
+    <token name="star"></token>
+    <token name="slash"></token>
+    <token name="par_open"></token>
+    <token name="par_close"></token>
+    <rule name="source_file"></rule>
+    <token name="end"></token>
+</grammar>
